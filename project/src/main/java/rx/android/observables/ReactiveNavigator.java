@@ -1,3 +1,18 @@
+/**
+ * Copyright 2014 Novoda, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package rx.android.observables;
 
 import android.app.Activity;
@@ -11,6 +26,10 @@ import rx.Subscription;
 import rx.android.exception.CancelledException;
 import rx.android.exception.FailedException;
 
+/**
+ * Handles the navigation to an Activity for result using an Observable
+ * You need to hook the Activity onActivityResult call to this object to make it work.
+ */
 public class ReactiveNavigator {
 
     private final ActivityStarter activityStarter;
@@ -21,6 +40,12 @@ public class ReactiveNavigator {
         this.activityStarter = activityStarter;
     }
 
+    /**
+     * Start an activity and observe the result using an Observable
+     * @param intent The request intent for which you intend to start the activity
+     * @param requestCode The request code to identify your request
+     * @return An observable of the Intent data response
+     */
     public Observable<Intent> toActivityForResult(final Intent intent, final int requestCode) {
         return Observable.create(new Observable.OnSubscribe<Intent>() {
             @Override
@@ -42,6 +67,13 @@ public class ReactiveNavigator {
         });
     }
 
+    /**
+     * The hook to forward responses from onActivityResult.
+     * This call will retrieve the relevant subscriber and pass the data to it if successful or fail accordingly.
+     * @param requestCode The request code from the response
+     * @param resultCode The response code from the action
+     * @param data The data returned by the action
+     */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Observer<? super Intent> observer = activityResultObservers.get(requestCode);
         if (observer == null) {
