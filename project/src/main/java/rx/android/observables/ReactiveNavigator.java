@@ -68,30 +68,32 @@ public class ReactiveNavigator {
     }
 
     /**
+     * /**
      * The hook to forward responses from onActivityResult.
      * This call will retrieve the relevant subscriber and pass the data to it if successful or fail accordingly.
      * @param requestCode The request code from the response
      * @param resultCode The response code from the action
      * @param data The data returned by the action
+     * @return True if the result has been handled false otherwise
      */
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
         Observer<? super Intent> observer = activityResultObservers.get(requestCode);
         if (observer == null) {
-            return;
+            return false;
         }
         switch (resultCode) {
             case Activity.RESULT_OK:
                 observer.onNext(data);
                 observer.onCompleted();
                 activityResultObservers.remove(requestCode);
-                break;
+                return true;
             case Activity.RESULT_CANCELED:
                 observer.onError(new CancelledException());
                 activityResultObservers.remove(requestCode);
-                break;
+                return true;
             default:
                 observer.onError(new FailedException());
-                break;
+                return true;
         }
     }
 
