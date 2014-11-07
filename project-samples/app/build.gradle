@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.0"
+
+    defaultConfig {
+        applicationId "rx.android.project.samples"
+        minSdkVersion 16
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+// make sure we always compile against the latest version of RxAndroid
+def rootProjectProperties = new Properties()
+file("../../gradle.properties").withReader { reader ->
+    rootProjectProperties.load(reader)
+    properties.putAll(rootProjectProperties)
+}
+
+dependencies {
+    def version = rootProjectProperties.get("version")
+    compile "io.reactivex:rxandroid:$version"
+    compile "io.reactivex:rxandroid:$version"
+}
