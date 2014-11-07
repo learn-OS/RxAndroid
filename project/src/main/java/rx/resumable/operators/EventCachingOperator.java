@@ -19,9 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
 
 /**
  * An Operator that forwards events when a subscriber is attached and caches all events received between subscriptions
@@ -29,40 +27,18 @@ import rx.Subscription;
  *
  * @param <T> Type of the subscriber
  */
-public class EventCachingOperator<T> implements ObserverOperator<T> {
+public class EventCachingOperator<T> extends DropEventOperator<T> {
 
     private final List<Event> cachedEvents = new ArrayList<Event>();
-    private final EventForwardingListener listener;
-
-    private Observer<? super T> observer;
 
     public EventCachingOperator(EventForwardingListener listener) {
-        this.listener = listener;
+        super(listener);
     }
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
-        this.observer = subscriber;
-        subscriber.add(new Subscription() {
-            @Override
-            public void unsubscribe() {
-                observer = null;
-            }
-
-            @Override
-            public boolean isUnsubscribed() {
-                return observer == null;
-            }
-        });
+        super.call(subscriber);
         sendCachedEvents();
-    }
-
-    public Observer<? super T> getObserver() {
-        return observer;
-    }
-
-    public boolean hasObserver() {
-        return observer != null;
     }
 
     private void sendCachedEvents() {
@@ -76,15 +52,13 @@ public class EventCachingOperator<T> implements ObserverOperator<T> {
 
     @Override
     public final void onCompleted() {
-        if (hasObserver()) {
-            listener.allEventsForwarded();
-            observer.onCompleted();
+        if (hasObservers()) {
+            super.onCompleted();
         } else {
             cachedEvents.add(new Event() {
                 @Override
                 public void send() {
-                    listener.allEventsForwarded();
-                    observer.onCompleted();
+                    onCompleted();
                 }
             });
         }
@@ -92,15 +66,13 @@ public class EventCachingOperator<T> implements ObserverOperator<T> {
 
     @Override
     public final void onError(final Throwable throwable) {
-        if (hasObserver()) {
-            listener.allEventsForwarded();
-            observer.onError(throwable);
+        if (hasObservers()) {
+            super.onError(throwable);
         } else {
             cachedEvents.add(new Event() {
                 @Override
                 public void send() {
-                    listener.allEventsForwarded();
-                    observer.onError(throwable);
+                    onError(throwable);
                 }
             });
         }
@@ -108,13 +80,13 @@ public class EventCachingOperator<T> implements ObserverOperator<T> {
 
     @Override
     public final void onNext(final T t) {
-        if (hasObserver()) {
-            observer.onNext(t);
+        if (hasObservers()) {
+            super.onNext(t);
         } else {
             cachedEvents.add(new Event() {
                 @Override
                 public void send() {
-                    observer.onNext(t);
+                    onNext(t);
                 }
             });
         }

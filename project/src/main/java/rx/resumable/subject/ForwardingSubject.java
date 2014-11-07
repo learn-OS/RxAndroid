@@ -44,4 +44,9 @@ public class ForwardingSubject<T> extends rx.subjects.Subject<T, T> {
     public void onNext(T t) {
         subscribeFunc.onNext(t);
     }
+
+    @Override
+    public boolean hasObservers() {
+        return subscribeFunc.hasObservers();
+    }
 }
