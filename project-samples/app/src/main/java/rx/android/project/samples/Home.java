@@ -43,9 +43,6 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
 
     /**
      * onActivityResult delegates the events to the reactiveNavigator
-     * @param requestCode
-     * @param resultCode
-     * @param data
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -97,8 +94,6 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
     /**
      * Method from the ObserverFactory, this allows the activity to create instances of non static Observers
      * this will be used by the resumableSubscriber to recreate Observers to reattach them to Observables from a previous configuration (eg: over rotation)
-     * @param code
-     * @return
      */
     @Override
     public ResumableObserver createObserver(int code) {
@@ -112,7 +107,6 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
 
     /**
      * Identifies this activity as a unique reference point across multiple instances of this activity.
-     * @return
      */
     @Override
     public int getResumableId() {
