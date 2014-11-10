@@ -20,6 +20,8 @@ public class ReactiveDatePicker extends ReactiveDialog<Date> {
             @Override
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
                 calendar.set(year, monthOfYear, dayOfMonth);
+                //When a date is selected we can use the listener (extension of Observer) to send the data of the Dialogs type (here a Date)
+                //to the observable. I'm using here onCompleteWith which will call onNext with the value before calling onComplete.
                 getListener().onCompleteWith(calendar.getTime());
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));

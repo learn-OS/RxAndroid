@@ -41,18 +41,6 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         setupViews();
     }
 
-    /**
-     * onActivityResult delegates the events to the reactiveNavigator
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        boolean handled = reactiveNavigator.onActivityResult(requestCode, resultCode, data);
-        //If the reactiveNavigator didn't handle the result we delegate back to Android.
-        if (!handled) {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
     private SampleApplication getSampleApplication() {
         return (SampleApplication) getApplication();
     }
@@ -90,6 +78,18 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         return Intent.createChooser(intent, "Pick a File");
+    }
+
+    /**
+     * onActivityResult delegates the events to the reactiveNavigator
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        boolean handled = reactiveNavigator.onActivityResult(requestCode, resultCode, data);
+        //If the reactiveNavigator didn't handle the result we delegate back to Android.
+        if (!handled) {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     /**
