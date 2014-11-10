@@ -29,5 +29,9 @@ file("../../gradle.properties").withReader { reader ->
 dependencies {
     def version = rootProjectProperties.get("version")
     compile "io.reactivex:rxandroid:$version"
+
+    /** This is only temporary, since this module is not released yet.
+     *  Once the project module is released a similar dependency declaration than the core rxandroid can be used.
+     */
     compile files("../../project/build/libs/project-${version}.jar")
 }

@@ -47,6 +47,7 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         boolean handled = reactiveNavigator.onActivityResult(requestCode, resultCode, data);
+        //If the reactiveNavigator didn't handle the result we delegate back to Android.
         if (!handled) {
             super.onActivityResult(requestCode, resultCode, data);
         }
@@ -113,6 +114,9 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         return R.id.home_activity;
     }
 
+    /**
+     * We can use non static observers since the resumableSubscriber will ensure they are unsubscribed, recreated and resubscribed over rotation.
+     */
     private class DateObserver implements ResumableObserver<Date> {
 
         @Override
@@ -140,6 +144,9 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         }
     }
 
+    /**
+     * We can use non static observers since the resumableSubscriber will ensure they are unsubscribed, recreated and resubscribed over rotation.
+     */
     private class FileObserver implements ResumableObserver<Uri> {
         @Override
         public int getId() {
