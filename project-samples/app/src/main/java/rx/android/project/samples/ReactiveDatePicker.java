@@ -12,7 +12,7 @@ import rx.android.observables.ReactiveDialog;
 
 public class ReactiveDatePicker extends ReactiveDialog<Date> {
 
-    private Calendar calendar = Calendar.getInstance();
+    private final Calendar calendar = Calendar.getInstance();
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

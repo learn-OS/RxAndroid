@@ -42,20 +42,22 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         }
     }
 
+    private SampleApplication getSampleApplication() {
+        return (SampleApplication) getApplication();
+    }
+
     private void setupViews() {
         findViewById(R.id.pick_date_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                resumableSubscriber.subscribe(new ReactiveDatePicker().show(getFragmentManager()), new DateObserver());
+                Observable<Date> dateObservable = new ReactiveDatePicker().show(getFragmentManager());
+                resumableSubscriber.subscribe(dateObservable, new DateObserver());
             }
         });
         findViewById(R.id.pick_file_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                Observable<Uri> fileObservable = reactiveNavigator.toActivityForResult(Intent.createChooser(intent, "Pick a File"), R.id.file_request)
+                Observable<Uri> fileObservable = reactiveNavigator.toActivityForResult(createFileChoserIntent(), R.id.file_request)
                         .map(new Func1<Intent, Uri>() {
                             @Override
                             public Uri call(Intent intent) {
@@ -67,8 +69,11 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         });
     }
 
-    private SampleApplication getSampleApplication() {
-        return (SampleApplication) getApplication();
+    private Intent createFileChoserIntent() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        return Intent.createChooser(intent, "Pick a File");
     }
 
     @Override
@@ -95,6 +100,7 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
 
         @Override
         public void onCompleted() {
+            //Nothing to do
         }
 
         @Override
@@ -120,6 +126,7 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
 
         @Override
         public void onCompleted() {
+            //Nothing to do
         }
 
         @Override
