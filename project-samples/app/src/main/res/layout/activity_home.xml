@@ -10,13 +10,13 @@
   tools:context=".Home">
 
   <Button
-    android:id="@+id/pick_date_btn"
+    android:id="@+id/pick_date_button"
     android:text="@string/pick_a_date"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />
 
   <Button
-    android:id="@+id/pick_file_btn"
+    android:id="@+id/pick_file_button"
     android:text="@string/pick_a_file"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" />

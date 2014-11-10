@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+  <!-- Activity Ids -->
   <item name="home_activity" type="id" />
+
+  <!-- Resumable Observer Ids -->
   <item name="date_observer" type="id" />
+
+  <!-- StartActivity RequestCodes -->
   <item name="file_request" type="id" />
 </resources>

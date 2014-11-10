@@ -2,7 +2,7 @@
 <resources>
 
   <string name="app_name">ProjectSamples</string>
-  <string name="pick_a_date">Pick a Date</string>
-  <string name="pick_a_file">Pick a File</string>
+  <string name="pick_a_date">Pick a date</string>
+  <string name="pick_a_file">Pick a file</string>
 
 </resources>

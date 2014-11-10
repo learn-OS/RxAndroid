@@ -47,14 +47,14 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
     }
 
     private void setupViews() {
-        findViewById(R.id.pick_date_btn).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.pick_date_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Observable<Date> dateObservable = new ReactiveDatePicker().show(getFragmentManager());
                 resumableSubscriber.subscribe(dateObservable, new DateObserver());
             }
         });
-        findViewById(R.id.pick_file_btn).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.pick_file_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Observable<Uri> fileObservable = reactiveNavigator.toActivityForResult(createFileChoserIntent(), R.id.file_request)
