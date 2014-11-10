@@ -29,5 +29,5 @@ file("../../gradle.properties").withReader { reader ->
 dependencies {
     def version = rootProjectProperties.get("version")
     compile "io.reactivex:rxandroid:$version"
-    compile "io.reactivex:rxandroid:$version"
+    compile files("../../project/build/libs/project-${version}.jar")
 }
