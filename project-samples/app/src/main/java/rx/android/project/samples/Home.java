@@ -20,6 +20,11 @@ import rx.resumable.ResumableReference;
 import rx.resumable.ResumableSubscriber;
 import rx.resumable.observer.ResumableObserver;
 
+/**
+ * The activity implements Resumable reference, to be identified using a unique ID,
+ * ObserverFactory to provide instances of observers according to their unique Ids and
+ * ActivityStarter to allow calls to startActivityForResult.
+ */
 public class Home extends Activity implements ResumableReference, ObserverFactory, ActivityStarter {
 
     private ResumableSubscriber resumableSubscriber;
@@ -29,11 +34,19 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        //We create the resumableSubscriber using the activity as Reference, Factory, and passing the Vault that lives in the application context.
         resumableSubscriber = new ResumableSubscriber(this, this, getSampleApplication().getObservableVault());
+        //We create the Navigator using the activity as ActivityStarter
         reactiveNavigator = new ReactiveNavigator(this);
         setupViews();
     }
 
+    /**
+     * onActivityResult delegates the events to the reactiveNavigator
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         boolean handled = reactiveNavigator.onActivityResult(requestCode, resultCode, data);
@@ -50,13 +63,17 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         findViewById(R.id.pick_date_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //We get the Observable of a date using the ReactiveDialog
                 Observable<Date> dateObservable = new ReactiveDatePicker().show(getFragmentManager());
+                //We use the resumableSubscriber to subscribe the Observer to the dateObservable to allow this observable to be handled over rotation
                 resumableSubscriber.subscribe(dateObservable, new DateObserver());
             }
         });
         findViewById(R.id.pick_file_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //We use the reactiveNavigator to get an observable of the startActivityForResult call.
+                //Since the observable only returns a value if the call was successful we can map a function to extract relevant data from the intent returned
                 Observable<Uri> fileObservable = reactiveNavigator.toActivityForResult(createFileChoserIntent(), R.id.file_request)
                         .map(new Func1<Intent, Uri>() {
                             @Override
@@ -64,6 +81,7 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
                                 return intent.getData();
                             }
                         });
+                //We use the resumableSubscriber to subscribe the Observer to this observable to allow it to be handled over rotation
                 resumableSubscriber.subscribe(fileObservable, new FileObserver());
             }
         });
@@ -76,6 +94,12 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         return Intent.createChooser(intent, "Pick a File");
     }
 
+    /**
+     * Method from the ObserverFactory, this allows the activity to create instances of non static Observers
+     * this will be used by the resumableSubscriber to recreate Observers to reattach them to Observables from a previous configuration (eg: over rotation)
+     * @param code
+     * @return
+     */
     @Override
     public ResumableObserver createObserver(int code) {
         switch (code) {
@@ -86,6 +110,10 @@ public class Home extends Activity implements ResumableReference, ObserverFactor
         }
     }
 
+    /**
+     * Identifies this activity as a unique reference point across multiple instances of this activity.
+     * @return
+     */
     @Override
     public int getResumableId() {
         return R.id.home_activity;
