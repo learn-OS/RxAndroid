@@ -1,0 +1,35 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.12.+' // 0.12.x is for Gradle 1.12 projects
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "21.1.1"
+
+    defaultConfig {
+        applicationId "rx.android.framework.samples"
+        minSdkVersion 16
+        targetSdkVersion 21
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+        }
+    }
+}
+
+dependencies {
+    compile project(':rxandroid')
+    compile project(':rxandroid-framework')
+}
