@@ -20,20 +20,17 @@ import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
-import java.util.UUID;
-
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.android.exception.CancelledException;
-import rx.resumable.SubscriberVault;
+import rx.functions.Func1;
 
 /**
- * A Wrapper for DialogFragment that allows to observe on the result of the User Interaction.
+ * Wrapper for DialogFragment that allows to observe on the result of the user interaction.
  *
  * @param <T> The type of data expected as return value from the fragment, can be boolean for confirmation dialogs,
- *            or more complex for data input dialogs
+ *            or more complex for data input dialogs.
  */
 public class ReactiveDialog<T> extends DialogFragment {
 
@@ -41,22 +38,21 @@ public class ReactiveDialog<T> extends DialogFragment {
 
     private static final SubscriberVault subscriberVault = new SubscriberVault();
 
-    protected interface ReactiveDialogListener<T> extends Observer<T> {
-        void onCompleteWith(T value);
+    public interface ReactiveDialogListener<V> extends Observer<V> {
+        void onCompleteWith(V value);
 
         void onCancel();
     }
 
     /**
-     *
-     * @param manager The android Fragment manager
-     * @return An observable on the User Interaction
+     * Returns an observable for the dialog result.
+     * The dialog is shown at subscription time.
      */
-    public Observable<T> show(final FragmentManager manager) {
-        return Observable.create(new Observable.OnSubscribe<T>() {
+    public Observable<Result<T>> show(final FragmentManager manager) {
+        return Observable.create(new Observable.OnSubscribe<Result<T>>() {
             @Override
-            public void call(rx.Subscriber<? super T> subscriber) {
-                final UUID key = subscriberVault.store(subscriber);
+            public void call(rx.Subscriber<? super Result<T>> subscriber) {
+                final long key = subscriberVault.store(subscriber);
                 storeSubscriberKey(key);
                 subscriber.add(new Subscription() {
                     @Override
@@ -69,9 +65,29 @@ public class ReactiveDialog<T> extends DialogFragment {
                         return !subscriberVault.containsKey(key);
                     }
                 });
-                show(manager, getClass().getSimpleName());
+                show(manager, null);
             }
         });
+    }
+
+    /**
+     * Returns an unwrapped version of the dialog observable.
+     * Cancelled events are ignored to allow for simpler composition in the case of data input dialogs.
+     */
+    public Observable<T> showIgnoringCancelEvents(final FragmentManager manager) {
+        return show(manager)
+                .filter(new Func1<Result<T>, Boolean>() {
+                    @Override
+                    public Boolean call(Result<T> tResult) {
+                        return !tResult.isCancelled();
+                    }
+                })
+                .map(new Func1<Result<T>, T>() {
+                    @Override
+                    public T call(Result<T> tResult) {
+                        return tResult.getValue();
+                    }
+                });
     }
 
     @Override
@@ -81,57 +97,55 @@ public class ReactiveDialog<T> extends DialogFragment {
     }
 
     /**
-     * Get the wrapped subscriber for the observable
-     * @return a listener that is an extended version of the subscriber
+     * Get the wrapped subscriber for the observable.
      */
     protected ReactiveDialogListener<T> getListener() {
-        Subscriber<Object> subscriber = subscriberVault.get(getSubscriberKey());
+        Subscriber<Result<T>> subscriber = subscriberVault.get(getSubscriberKey());
         if (subscriber == null) {
             throw new IllegalStateException("No listener attached, you are probably trying to deliver a result after completion of the observable");
         }
-        return new ReactiveDialogObserver<T>(subscriber);
+        return new ReactiveDialogObserver(subscriber);
     }
 
-    private void storeSubscriberKey(UUID key) {
+    private void storeSubscriberKey(long key) {
         if (getArguments() == null) {
             setArguments(new Bundle());
         }
-        getArguments().putSerializable(REACTIVE_DIALOG_KEY, key);
+        getArguments().putLong(REACTIVE_DIALOG_KEY, key);
     }
 
-    private UUID getSubscriberKey() {
-        return (UUID) getArguments().getSerializable(REACTIVE_DIALOG_KEY);
+    private long getSubscriberKey() {
+        return getArguments().getLong(REACTIVE_DIALOG_KEY);
     }
 
     /**
      * A wrapper for the subscriber from the observable.
      * The wrapper add specialised failures such as CancelledException and removes itself from the vault upon completion or failure.
-     * @param <T> The type of data expected as return value from the fragment, can be boolean for confirmation dialogs,
-     *            or more complex for data input dialogs
      */
-    private class ReactiveDialogObserver<T> implements ReactiveDialogListener<T> {
+    private class ReactiveDialogObserver implements ReactiveDialogListener<T> {
 
-        private final Subscriber<? super T> subscriber;
+        private final Subscriber<? super Result<T>> subscriber;
 
-        public ReactiveDialogObserver(Subscriber<? super T> subscriber) {
+        public ReactiveDialogObserver(Subscriber<? super Result<T>> subscriber) {
             this.subscriber = subscriber;
         }
 
         @Override
         public void onNext(T value) {
-            subscriber.onNext(value);
+            subscriber.onNext(Result.asSuccess(value));
         }
 
         @Override
         public void onCompleteWith(T value) {
-            subscriber.onNext(value);
+            subscriber.onNext(Result.asSuccess(value));
             subscriber.onCompleted();
             subscriberVault.remove(getSubscriberKey());
         }
 
         @Override
         public void onCancel() {
-            subscriber.onError(new CancelledException());
+            subscriber.onNext(Result.<T>asCancelled());
+            subscriber.onCompleted();
             subscriberVault.remove(getSubscriberKey());
         }
 
@@ -148,4 +162,30 @@ public class ReactiveDialog<T> extends DialogFragment {
         }
     }
 
+    public static class Result<V> {
+
+        private final V value;
+        private final boolean cancelled;
+
+        static <V> Result<V> asSuccess(V value){
+            return new Result(value, false);
+        }
+
+        static <V> Result<V> asCancelled() {
+            return new Result(null, true);
+        }
+
+        private Result(V value, boolean cancelled) {
+            this.value = value;
+            this.cancelled = cancelled;
+        }
+
+        public V getValue() {
+            return value;
+        }
+
+        public boolean isCancelled() {
+            return cancelled;
+        }
+    }
 }
